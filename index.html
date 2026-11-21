@@ -20,8 +20,6 @@
       -webkit-tap-highlight-color: transparent;
       padding-top: env(safe-area-inset-top);
     }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .gold-gradient {
       background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
     }
@@ -57,12 +55,17 @@
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Username or Admin Email</label>
           <div class="relative">
             <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-            <input type="text" id="loginUser" required placeholder="e.g. guard1 or admin@email.com"
+            <input type="text" id="loginUser" required placeholder="e.g. lobby1122 or admin@email.com"
               class="w-full pl-10 pr-3 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
           </div>
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Password</label>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-bold text-slate-600 uppercase">Password</label>
+            <button type="button" onclick="handleForgotPassword()" class="text-[11px] font-bold text-amber-700 hover:underline">
+              Forgot Password?
+            </button>
+          </div>
           <div class="relative">
             <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
             <input type="password" id="loginPass" required placeholder="••••••••"
@@ -70,13 +73,14 @@
           </div>
         </div>
         <div id="loginError" class="hidden text-xs text-red-600 bg-red-50 border border-red-200 p-2.5 rounded-xl font-medium"></div>
+        <div id="loginSuccess" class="hidden text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl font-medium"></div>
         <button type="submit" id="loginBtn"
           class="w-full py-3 rounded-xl navy-gradient text-white font-bold text-sm hover:opacity-95 transition flex items-center justify-center gap-2 shadow-md">
           <span>Sign In</span>
           <i class="fa-solid fa-arrow-right"></i>
         </button>
       </form>
-      <p class="text-[11px] text-center text-slate-400 mt-5">Authorized Personnel Only • Live Cloud Sync</p>
+      <p class="text-[11px] text-center text-slate-400 mt-5">Authorized Personnel Only • Contact Admin for Account Access</p>
     </div>
   </div>
 
@@ -100,15 +104,17 @@
           </div>
 
           <div class="flex items-center gap-2">
-            <!-- Install App Button (Shows on Android/Chrome when installable) -->
             <button id="installAppBtn" onclick="triggerInstall()" class="hidden px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow">
               <i class="fa-solid fa-download"></i>
-              <span>Install App</span>
+              <span class="hidden sm:inline">Install</span>
             </button>
-            <!-- Admin Staff Management Button -->
+            <button id="activityLogBtn" onclick="openActivityModal()" class="hidden px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-clock-rotate-left text-amber-400"></i>
+              <span class="hidden sm:inline">Activity Log</span>
+            </button>
             <button id="adminPanelBtn" onclick="openAdminModal()" class="hidden px-3 py-2 rounded-xl gold-gradient text-white text-xs font-bold flex items-center gap-1.5 shadow hover:opacity-95 transition">
               <i class="fa-solid fa-users-gear"></i>
-              <span class="hidden sm:inline">Staff & Access</span>
+              <span class="hidden sm:inline">Staff & Admin</span>
             </button>
             <button onclick="handleLogout()" title="Logout" class="px-3 py-2 rounded-xl bg-white/10 hover:bg-red-500/80 text-white text-xs font-semibold flex items-center gap-1.5 transition">
               <i class="fa-solid fa-right-from-bracket"></i>
@@ -313,15 +319,36 @@
     </div>
   </div>
 
+  <!-- STAFF ACTIVITY AUDIT LOG MODAL -->
+  <div id="activityModal" class="hidden fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full sm:max-w-2xl rounded-t-3xl sm:rounded-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="navy-gradient text-white px-5 py-4 flex items-center justify-between shrink-0">
+        <div>
+          <h3 class="text-lg font-extrabold flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left text-amber-400"></i> Staff Activity Audit Log
+          </h3>
+          <p class="text-xs text-slate-300">Live history of all updates & role changes</p>
+        </div>
+        <button onclick="closeActivityModal()" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-5 overflow-y-auto flex-1 space-y-2.5" id="activityLogList">
+        <p class="text-xs text-slate-400 text-center py-8">Loading activity logs...</p>
+      </div>
+    </div>
+  </div>
+
   <!-- ADMIN STAFF & PERMISSIONS MODAL -->
   <div id="adminModal" class="hidden fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="bg-white w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="navy-gradient text-white px-5 py-4 flex items-center justify-between shrink-0">
         <div>
           <h3 class="text-lg font-extrabold flex items-center gap-2">
-            <i class="fa-solid fa-users-gear text-amber-400"></i> Staff & Permissions
+            <i class="fa-solid fa-users-gear text-amber-400"></i> Staff & Ownership Control
           </h3>
-          <p class="text-xs text-slate-300">Create logins & control who can edit data</p>
+          <p class="text-xs text-slate-300">Manage staff logins, roles & Master Admin transfer</p>
         </div>
         <button onclick="closeAdminModal()" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
           <i class="fa-solid fa-xmark"></i>
@@ -330,23 +357,23 @@
 
       <div class="p-5 overflow-y-auto space-y-5 flex-1">
         <form id="createStaffForm" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
-          <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Add New Staff Account</h4>
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Add New Staff / Manager Account</h4>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
-              <label class="block text-[11px] font-bold text-slate-600 mb-1">Staff Full Name</label>
-              <input type="text" id="staffName" required placeholder="e.g. Bilal Lobby"
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Full Name</label>
+              <input type="text" id="staffName" required placeholder="e.g. Mr. Tariq (Manager)"
                 class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500" />
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-slate-600 mb-1">Login Username (no spaces)</label>
-              <input type="text" id="staffUsername" required placeholder="e.g. bilal1"
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Login Username or Email</label>
+              <input type="text" id="staffUsername" required placeholder="e.g. manager1 or name@voco.com"
                 class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500" />
             </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
               <label class="block text-[11px] font-bold text-slate-600 mb-1">Password (min 6 chars)</label>
-              <input type="text" id="staffPassword" required minlength="6" placeholder="e.g. Bonnington@123"
+              <input type="text" id="staffPassword" required minlength="6" placeholder="e.g. Bonnington@2026"
                 class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500" />
             </div>
             <div>
@@ -360,12 +387,12 @@
           </div>
           <div id="staffCreateMsg" class="hidden text-xs p-2.5 rounded-xl font-medium"></div>
           <button type="submit" id="createStaffBtn" class="w-full py-2.5 rounded-xl gold-gradient text-white text-xs font-bold shadow flex items-center justify-center gap-1.5">
-            <i class="fa-solid fa-user-plus"></i> Create Staff Login
+            <i class="fa-solid fa-user-plus"></i> Create Account
           </button>
         </form>
 
         <div>
-          <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2">Registered Staff Accounts</h4>
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2">Registered Accounts & Master Ownership</h4>
           <div id="staffListContainer" class="space-y-2"></div>
         </div>
       </div>
@@ -408,8 +435,8 @@
   <!-- FIREBASE SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { getFirestore, collection, doc, setDoc, addDoc, deleteDoc, onSnapshot, getDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDC2bPdSPl_r3DpbyuV77Xhz8BzS1jpauw",
@@ -421,7 +448,7 @@
       measurementId: "G-TFMSVJWG8N"
     };
 
-    const MASTER_ADMIN_EMAIL = "shabanashfaq7@gmail.com";
+    const INITIAL_BOOTSTRAP_EMAIL = "shabanashfaq7@gmail.com";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -432,9 +459,12 @@
 
     let currentUser = null;
     let currentUserRole = "viewer";
+    let isCurrentUserMaster = false;
     let currentUserName = "";
+    let masterOwnerUid = null;
     let unitsData = {};
     let staffUsers = {};
+    let activityLogs = [];
     let activeUnitId = null;
     let modalDocs = [];
 
@@ -479,6 +509,52 @@
       setTimeout(() => t.classList.add('hidden'), 2800);
     }
 
+    async function logActivity(actionType, unitId, details) {
+      try {
+        await addDoc(collection(db, "activity_logs"), {
+          actorName: currentUserName,
+          actorEmail: currentUser?.email || "",
+          actorRole: currentUserRole,
+          actionType,
+          unitId: unitId || "SYSTEM",
+          details,
+          timestamp: Date.now()
+        });
+      } catch (e) {
+        console.error("Log error:", e);
+      }
+    }
+
+    // Forgot Password Handler (Smart check for real emails vs staff usernames)
+    window.handleForgotPassword = async () => {
+      const errBox = document.getElementById('loginError');
+      const okBox = document.getElementById('loginSuccess');
+      errBox.classList.add('hidden');
+      okBox.classList.add('hidden');
+
+      const rawInput = document.getElementById('loginUser').value.trim().toLowerCase();
+      if (!rawInput) {
+        errBox.textContent = "Please enter your Admin/Manager email address in the box above first.";
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      if (!rawInput.includes('@') || rawInput.endsWith('@bonnington.app')) {
+        errBox.textContent = "Staff usernames cannot self-reset. Please contact your Admin or Manager to reset your password.";
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        await sendPasswordResetEmail(auth, rawInput);
+        okBox.textContent = `Password reset link sent to ${rawInput}. Please check your inbox (and spam folder).`;
+        okBox.classList.remove('hidden');
+      } catch (err) {
+        errBox.textContent = "Could not send reset email: " + err.message;
+        errBox.classList.remove('hidden');
+      }
+    };
+
     onAuthStateChanged(auth, async (user) => {
       document.getElementById('loadingScreen').classList.add('hidden');
 
@@ -492,16 +568,31 @@
       currentUser = user;
       const emailLower = (user.email || "").toLowerCase();
 
-      if (emailLower === MASTER_ADMIN_EMAIL.toLowerCase()) {
+      const sysRef = doc(db, "system_config", "ownership");
+      const sysSnap = await getDoc(sysRef);
+
+      if (!sysSnap.exists()) {
+        if (emailLower === INITIAL_BOOTSTRAP_EMAIL.toLowerCase()) {
+          masterOwnerUid = user.uid;
+          await setDoc(sysRef, { masterUid: user.uid, masterEmail: emailLower, updatedAt: Date.now() });
+          await setDoc(doc(db, "staff_users", user.uid), {
+            name: "Muhammad Shaban",
+            username: emailLower,
+            email: emailLower,
+            role: "admin",
+            disabled: false
+          }, { merge: true });
+        }
+      } else {
+        masterOwnerUid = sysSnap.data().masterUid;
+      }
+
+      isCurrentUserMaster = (masterOwnerUid === user.uid);
+
+      if (isCurrentUserMaster) {
         currentUserRole = "admin";
-        currentUserName = "Muhammad Shaban (Admin)";
-        await setDoc(doc(db, "staff_users", user.uid), {
-          name: "Muhammad Shaban",
-          username: MASTER_ADMIN_EMAIL,
-          email: MASTER_ADMIN_EMAIL,
-          role: "admin",
-          disabled: false
-        }, { merge: true });
+        const mySnap = await getDoc(doc(db, "staff_users", user.uid));
+        currentUserName = mySnap.exists() ? mySnap.data().name : emailLower.split('@')[0];
       } else {
         const profileSnap = await getDoc(doc(db, "staff_users", user.uid));
         if (profileSnap.exists()) {
@@ -528,22 +619,34 @@
     function setupRoleUI() {
       const badge = document.getElementById('userRoleBadge');
       const adminBtn = document.getElementById('adminPanelBtn');
+      const logBtn = document.getElementById('activityLogBtn');
       const readOnlyBanner = document.getElementById('readOnlyBanner');
 
       document.getElementById('loggedUserLabel').textContent = `${currentUserName} (${currentUser.email})`;
-      badge.textContent = currentUserRole.toUpperCase();
 
-      if (currentUserRole === 'admin') {
+      if (isCurrentUserMaster) {
+        badge.textContent = "MASTER ADMIN";
         badge.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-500 text-slate-950";
         adminBtn.classList.remove('hidden');
+        logBtn.classList.remove('hidden');
+        readOnlyBanner.classList.add('hidden');
+      } else if (currentUserRole === 'admin') {
+        badge.textContent = "ADMIN";
+        badge.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40";
+        adminBtn.classList.remove('hidden');
+        logBtn.classList.remove('hidden');
         readOnlyBanner.classList.add('hidden');
       } else if (currentUserRole === 'editor') {
+        badge.textContent = "EDITOR";
         badge.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30";
         adminBtn.classList.add('hidden');
+        logBtn.classList.add('hidden');
         readOnlyBanner.classList.add('hidden');
       } else {
+        badge.textContent = "VIEWER";
         badge.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-slate-600 text-slate-200";
         adminBtn.classList.add('hidden');
+        logBtn.classList.add('hidden');
         readOnlyBanner.classList.remove('hidden');
       }
     }
@@ -551,8 +654,10 @@
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const errBox = document.getElementById('loginError');
+      const okBox = document.getElementById('loginSuccess');
       const btn = document.getElementById('loginBtn');
       errBox.classList.add('hidden');
+      okBox.classList.add('hidden');
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Signing in...`;
 
@@ -575,8 +680,20 @@
 
     let unsubscribeUnits = null;
     let unsubscribeStaff = null;
+    let unsubscribeLogs = null;
+    let unsubscribeOwnership = null;
 
     function startRealtimeListeners() {
+      if (unsubscribeOwnership) unsubscribeOwnership();
+      unsubscribeOwnership = onSnapshot(doc(db, "system_config", "ownership"), (snap) => {
+        if (snap.exists()) {
+          masterOwnerUid = snap.data().masterUid;
+          isCurrentUserMaster = (masterOwnerUid === currentUser?.uid);
+          setupRoleUI();
+          if (currentUserRole === 'admin') renderStaffList();
+        }
+      });
+
       if (unsubscribeUnits) unsubscribeUnits();
       unsubscribeUnits = onSnapshot(collection(db, "apartments"), (snapshot) => {
         unitsData = {};
@@ -595,6 +712,16 @@
             staffUsers[docSnap.id] = { uid: docSnap.id, ...docSnap.data() };
           });
           renderStaffList();
+        });
+
+        if (unsubscribeLogs) unsubscribeLogs();
+        const logsQuery = query(collection(db, "activity_logs"), orderBy("timestamp", "desc"), limit(100));
+        unsubscribeLogs = onSnapshot(logsQuery, (snapshot) => {
+          activityLogs = [];
+          snapshot.forEach(docSnap => {
+            activityLogs.push({ id: docSnap.id, ...docSnap.data() });
+          });
+          renderActivityLogs();
         });
       }
     }
@@ -877,10 +1004,14 @@
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
 
       try {
+        const status = document.getElementById('fieldStatus').value;
+        const name = document.getElementById('fieldName').value.trim();
+        const phone = document.getElementById('fieldPhone').value.trim();
+
         const payload = {
-          status: document.getElementById('fieldStatus').value,
-          name: document.getElementById('fieldName').value.trim(),
-          phone: document.getElementById('fieldPhone').value.trim(),
+          status,
+          name,
+          phone,
           altPhone: document.getElementById('fieldAltPhone').value.trim(),
           email: document.getElementById('fieldEmail').value.trim(),
           notes: document.getElementById('fieldNotes').value.trim(),
@@ -890,6 +1021,12 @@
         };
 
         await setDoc(doc(db, "apartments", activeUnitId), payload);
+        await logActivity(
+          "UNIT_UPDATED",
+          activeUnitId,
+          `Status: ${status} | Resident: ${name || 'None'} | Phone: ${phone || 'None'} | Docs: ${modalDocs.length}`
+        );
+
         showToast(`Unit ${activeUnitId} updated!`);
         closeUnitModal();
       } catch (err) {
@@ -904,9 +1041,51 @@
       if (!activeUnitId) return;
       if (!confirm(`Clear all resident details & documents for Unit ${activeUnitId}?`)) return;
       await deleteDoc(doc(db, "apartments", activeUnitId));
+      await logActivity("UNIT_CLEARED", activeUnitId, `Cleared all resident data & documents for Unit ${activeUnitId}`);
       showToast(`Unit ${activeUnitId} cleared.`);
       closeUnitModal();
     };
+
+    window.openActivityModal = () => {
+      document.getElementById('activityModal').classList.remove('hidden');
+      renderActivityLogs();
+    };
+
+    window.closeActivityModal = () => {
+      document.getElementById('activityModal').classList.add('hidden');
+    };
+
+    function renderActivityLogs() {
+      const container = document.getElementById('activityLogList');
+      if (activityLogs.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-8">No staff activity recorded yet.</p>`;
+        return;
+      }
+
+      container.innerHTML = activityLogs.map(log => {
+        let icon = "fa-pen-to-square text-blue-600 bg-blue-50";
+        if (log.actionType === "UNIT_CLEARED" || log.actionType === "USER_BLOCKED") icon = "fa-trash-can text-red-600 bg-red-50";
+        else if (log.actionType === "OWNERSHIP_TRANSFERRED") icon = "fa-crown text-amber-600 bg-amber-50";
+        else if (log.actionType === "USER_CREATED" || log.actionType === "ROLE_CHANGED") icon = "fa-user-shield text-emerald-600 bg-emerald-50";
+
+        return `
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg ${icon} flex items-center justify-center shrink-0 mt-0.5">
+              <i class="fa-solid ${icon.split(' ')[0]} text-xs"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-extrabold text-slate-900">
+                  ${log.unitId !== 'SYSTEM' ? `Unit ${log.unitId}` : 'System / Access'} • <span class="font-semibold text-amber-700">${log.actorName}</span>
+                </span>
+                <span class="text-[10px] text-slate-400 shrink-0">${new Date(log.timestamp).toLocaleString()}</span>
+              </div>
+              <p class="text-xs text-slate-600 mt-0.5 break-words">${log.details}</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
 
     window.openAdminModal = () => {
       document.getElementById('adminModal').classList.remove('hidden');
@@ -927,7 +1106,7 @@
 
       try {
         const name = document.getElementById('staffName').value.trim();
-        const rawUser = document.getElementById('staffUsername').value.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '');
+        const rawUser = document.getElementById('staffUsername').value.trim().toLowerCase();
         const pass = document.getElementById('staffPassword').value;
         const role = document.getElementById('staffRole').value;
         const email = resolveLoginIdentifier(rawUser);
@@ -944,8 +1123,10 @@
           createdAt: Date.now()
         });
 
+        await logActivity("USER_CREATED", "SYSTEM", `Created account for ${name} (${rawUser}) with role ${role.toUpperCase()}`);
+
         msgBox.className = "text-xs p-2.5 rounded-xl font-medium bg-emerald-50 text-emerald-700 border border-emerald-200";
-        msgBox.innerHTML = `Account created! Share login:<br><b>Username:</b> ${rawUser} | <b>Password:</b> ${pass}`;
+        msgBox.innerHTML = `Account created! Share login:<br><b>Login:</b> ${rawUser} | <b>Password:</b> ${pass}`;
         msgBox.classList.remove('hidden');
         document.getElementById('createStaffForm').reset();
       } catch (err) {
@@ -954,7 +1135,7 @@
         msgBox.classList.remove('hidden');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-user-plus"></i> Create Staff Login`;
+        btn.innerHTML = `<i class="fa-solid fa-user-plus"></i> Create Account`;
       }
     });
 
@@ -967,9 +1148,9 @@
       }
 
       container.innerHTML = list.map(u => {
-        const isMaster = (u.email || '').toLowerCase() === MASTER_ADMIN_EMAIL.toLowerCase();
+        const isMaster = u.uid === masterOwnerUid;
         return `
-          <div class="p-3 rounded-xl border ${u.disabled ? 'bg-red-50/50 border-red-200' : 'bg-slate-50 border-slate-200'} flex items-center justify-between gap-2">
+          <div class="p-3 rounded-xl border ${u.disabled ? 'bg-red-50/50 border-red-200' : 'bg-slate-50 border-slate-200'} flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div class="min-w-0">
               <div class="flex items-center gap-1.5">
                 <span class="text-xs font-bold text-slate-900 truncate">${u.name}</span>
@@ -978,17 +1159,22 @@
               <div class="text-[11px] text-slate-500 truncate">Login: <b>${u.username}</b></div>
             </div>
             ${isMaster ? `
-              <span class="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg gold-gradient text-white shrink-0">Master Admin</span>
+              <span class="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg gold-gradient text-white shrink-0 self-start sm:self-center">Master Owner</span>
             ` : `
-              <div class="flex items-center gap-1.5 shrink-0">
-                <select onchange="updateStaffRole('${u.uid}', this.value)" class="px-2 py-1 rounded-lg bg-white border border-slate-300 text-xs font-semibold">
+              <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                <select onchange="updateStaffRole('${u.uid}', '${u.name}', this.value)" class="px-2 py-1 rounded-lg bg-white border border-slate-300 text-xs font-semibold">
                   <option value="viewer" ${u.role === 'viewer' ? 'selected' : ''}>Viewer</option>
                   <option value="editor" ${u.role === 'editor' ? 'selected' : ''}>Editor</option>
                   <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
                 </select>
-                <button onclick="toggleStaffBlock('${u.uid}', ${!u.disabled})" class="px-2.5 py-1 rounded-lg ${u.disabled ? 'bg-emerald-600 text-white' : 'bg-red-100 text-red-700'} text-xs font-bold">
+                <button onclick="toggleStaffBlock('${u.uid}', '${u.name}', ${!u.disabled})" class="px-2.5 py-1 rounded-lg ${u.disabled ? 'bg-emerald-600 text-white' : 'bg-red-100 text-red-700'} text-xs font-bold">
                   ${u.disabled ? 'Unblock' : 'Block'}
                 </button>
+                ${isCurrentUserMaster && !u.disabled ? `
+                  <button onclick="transferMasterOwnership('${u.uid}', '${u.name}', '${u.email}')" title="Make Master Owner" class="px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold flex items-center gap-1">
+                    <i class="fa-solid fa-crown"></i> Make Owner
+                  </button>
+                ` : ''}
               </div>
             `}
           </div>
@@ -996,14 +1182,33 @@
       }).join('');
     }
 
-    window.updateStaffRole = async (uid, newRole) => {
+    window.updateStaffRole = async (uid, name, newRole) => {
       await setDoc(doc(db, "staff_users", uid), { role: newRole }, { merge: true });
+      await logActivity("ROLE_CHANGED", "SYSTEM", `Changed ${name}'s access role to ${newRole.toUpperCase()}`);
       showToast(`Permission updated to ${newRole.toUpperCase()}`);
     };
 
-    window.toggleStaffBlock = async (uid, shouldDisable) => {
+    window.toggleStaffBlock = async (uid, name, shouldDisable) => {
       await setDoc(doc(db, "staff_users", uid), { disabled: shouldDisable }, { merge: true });
+      await logActivity(shouldDisable ? "USER_BLOCKED" : "ROLE_CHANGED", "SYSTEM", `${shouldDisable ? 'Blocked' : 'Unblocked'} account for ${name}`);
       showToast(shouldDisable ? "User access blocked" : "User access restored");
+    };
+
+    window.transferMasterOwnership = async (targetUid, targetName, targetEmail) => {
+      if (!isCurrentUserMaster) return;
+      const confirmed = confirm(
+        `Transfer Master Ownership to ${targetName} (${targetEmail})?\n\nThey will become the Master Owner and your account will become a regular Admin.`
+      );
+      if (!confirmed) return;
+
+      await setDoc(doc(db, "staff_users", targetUid), { role: "admin", disabled: false }, { merge: true });
+      await setDoc(doc(db, "system_config", "ownership"), {
+        masterUid: targetUid,
+        masterEmail: targetEmail,
+        updatedAt: Date.now()
+      });
+      await logActivity("OWNERSHIP_TRANSFERRED", "SYSTEM", `Transferred Master Admin ownership to ${targetName} (${targetEmail})`);
+      showToast(`Master Ownership transferred to ${targetName}!`);
     };
   </script>
 </body>
