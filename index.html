@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Bonnington" />
   <meta name="theme-color" content="#0f172a" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1040/1040993.png" />
   <title>voco Bonnington — Residential Directory</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -15,6 +18,7 @@
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background-color: #f1f5f9;
       -webkit-tap-highlight-color: transparent;
+      padding-top: env(safe-area-inset-top);
     }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -91,12 +95,17 @@
                 <h1 class="text-base sm:text-lg font-extrabold tracking-tight leading-tight">voco Bonnington</h1>
                 <span id="userRoleBadge" class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">VIEWER</span>
               </div>
-              <p id="loggedUserLabel" class="text-[11px] text-slate-300 truncate max-w-[180px] sm:max-w-xs">Loading user...</p>
+              <p id="loggedUserLabel" class="text-[11px] text-slate-300 truncate max-w-[160px] sm:max-w-xs">Loading user...</p>
             </div>
           </div>
 
           <div class="flex items-center gap-2">
-            <!-- Admin Staff Management Button (Hidden for non-admins) -->
+            <!-- Install App Button (Shows on Android/Chrome when installable) -->
+            <button id="installAppBtn" onclick="triggerInstall()" class="hidden px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow">
+              <i class="fa-solid fa-download"></i>
+              <span>Install App</span>
+            </button>
+            <!-- Admin Staff Management Button -->
             <button id="adminPanelBtn" onclick="openAdminModal()" class="hidden px-3 py-2 rounded-xl gold-gradient text-white text-xs font-bold flex items-center gap-1.5 shadow hover:opacity-95 transition">
               <i class="fa-solid fa-users-gear"></i>
               <span class="hidden sm:inline">Staff & Access</span>
@@ -183,7 +192,6 @@
   <!-- APARTMENT DETAIL / EDIT MODAL -->
   <div id="unitModal" class="hidden fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="bg-white w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
-      <!-- Modal Header -->
       <div id="modalHeader" class="navy-gradient text-white px-5 py-4 flex items-center justify-between shrink-0">
         <div>
           <div class="flex items-center gap-2">
@@ -197,9 +205,7 @@
         </button>
       </div>
 
-      <!-- Modal Body -->
       <div class="p-5 overflow-y-auto space-y-4 flex-1">
-        <!-- Quick Action Strip (When Phone/Email exists) -->
         <div id="modalQuickActions" class="hidden grid grid-cols-3 gap-2">
           <a id="modalCallBtn" href="#" class="py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
             <i class="fa-solid fa-phone"></i> Call Now
@@ -212,7 +218,6 @@
           </a>
         </div>
 
-        <!-- Form Fields -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">Occupancy Status</label>
@@ -257,10 +262,8 @@
             </h4>
           </div>
 
-          <!-- Existing Documents List -->
           <div id="docsList" class="space-y-2"></div>
 
-          <!-- Add Document Controls (Only visible for Admin / Editor) -->
           <div id="addDocSection" class="pt-2 border-t border-slate-200 space-y-2">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <select id="newDocType" class="px-2.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-semibold">
@@ -287,7 +290,6 @@
           </div>
         </div>
 
-        <!-- SECURITY / CONCIERGE NOTES -->
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">Security / Concierge Notes</label>
           <textarea id="fieldNotes" rows="2" placeholder="e.g. Parking B2-14, Delivery allowed to door, VIP guest..."
@@ -297,7 +299,6 @@
         <p id="lastUpdatedInfo" class="text-[11px] text-slate-400 italic"></p>
       </div>
 
-      <!-- Modal Footer -->
       <div id="modalFooter" class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2 shrink-0">
         <button id="clearUnitBtn" type="button" onclick="clearUnitRecord()" class="px-3 py-2.5 rounded-xl text-red-600 hover:bg-red-50 text-xs font-bold">
           Clear Record
@@ -328,7 +329,6 @@
       </div>
 
       <div class="p-5 overflow-y-auto space-y-5 flex-1">
-        <!-- Create New Staff Account Form -->
         <form id="createStaffForm" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
           <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Add New Staff Account</h4>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -364,7 +364,6 @@
           </button>
         </form>
 
-        <!-- Active Staff List -->
         <div>
           <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2">Registered Staff Accounts</h4>
           <div id="staffListContainer" class="space-y-2"></div>
@@ -379,13 +378,39 @@
     <span id="toastMsg">Saved!</span>
   </div>
 
+  <!-- REGISTER SERVICE WORKER & PWA INSTALL PROMPT -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = document.getElementById('installAppBtn');
+      if (btn) btn.classList.remove('hidden');
+    });
+
+    window.triggerInstall = async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        document.getElementById('installAppBtn').classList.add('hidden');
+      }
+      deferredPrompt = null;
+    };
+  </script>
+
   <!-- FIREBASE SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
     import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-    // Your Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyDC2bPdSPl_r3DpbyuV77Xhz8BzS1jpauw",
       authDomain: "bonnington-app.firebaseapp.com",
@@ -398,53 +423,41 @@
 
     const MASTER_ADMIN_EMAIL = "shabanashfaq7@gmail.com";
 
-    // Primary app instance (for logged-in user)
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Secondary app instance (so Admin can create staff users without getting logged out)
     const secondaryApp = initializeApp(firebaseConfig, "StaffCreatorApp");
     const secondaryAuth = getAuth(secondaryApp);
 
-    // State
     let currentUser = null;
-    let currentUserRole = "viewer"; // 'admin' | 'editor' | 'viewer'
+    let currentUserRole = "viewer";
     let currentUserName = "";
-    let unitsData = {}; // Map of unitId -> firestore data
-    let staffUsers = {}; // Map of uid -> staff profile
+    let unitsData = {};
+    let staffUsers = {};
     let activeUnitId = null;
     let modalDocs = [];
 
-    // Generate Exact 272 Bonnington Units
     const ALL_UNITS = [];
     const FLOORS_LIST = [];
 
-    // Floors 14 to 30 -> 12 apartments each
     for (let f = 14; f <= 30; f++) {
       FLOORS_LIST.push(f);
       for (let a = 1; a <= 12; a++) {
-        const unitNum = `${f}${String(a).padStart(2, '0')}`;
-        ALL_UNITS.push({ id: unitNum, floor: f, type: 'Apartment' });
+        ALL_UNITS.push({ id: `${f}${String(a).padStart(2, '0')}`, floor: f, type: 'Apartment' });
       }
     }
-    // Floor 31 is skipped!
-    // Floors 32 to 39 -> 8 apartments each
     for (let f = 32; f <= 39; f++) {
       FLOORS_LIST.push(f);
       for (let a = 1; a <= 8; a++) {
-        const unitNum = `${f}${String(a).padStart(2, '0')}`;
-        ALL_UNITS.push({ id: unitNum, floor: f, type: 'Apartment' });
+        ALL_UNITS.push({ id: `${f}${String(a).padStart(2, '0')}`, floor: f, type: 'Apartment' });
       }
     }
-    // Floor 40 -> 4 Penthouses
     FLOORS_LIST.push(40);
     for (let a = 1; a <= 4; a++) {
-      const unitNum = `400${a}`;
-      ALL_UNITS.push({ id: unitNum, floor: 40, type: 'Penthouse' });
+      ALL_UNITS.push({ id: `400${a}`, floor: 40, type: 'Penthouse' });
     }
 
-    // Populate Floor Dropdown
     const floorFilterEl = document.getElementById('floorFilter');
     FLOORS_LIST.forEach(f => {
       const opt = document.createElement('option');
@@ -453,7 +466,6 @@
       floorFilterEl.appendChild(opt);
     });
 
-    // Helper: Format username into email if no '@'
     function resolveLoginIdentifier(input) {
       const clean = input.trim().toLowerCase();
       if (clean.includes('@')) return clean;
@@ -467,7 +479,6 @@
       setTimeout(() => t.classList.add('hidden'), 2800);
     }
 
-    // Auth State Listener
     onAuthStateChanged(auth, async (user) => {
       document.getElementById('loadingScreen').classList.add('hidden');
 
@@ -481,7 +492,6 @@
       currentUser = user;
       const emailLower = (user.email || "").toLowerCase();
 
-      // Ensure Master Admin profile exists in Firestore
       if (emailLower === MASTER_ADMIN_EMAIL.toLowerCase()) {
         currentUserRole = "admin";
         currentUserName = "Muhammad Shaban (Admin)";
@@ -493,7 +503,6 @@
           disabled: false
         }, { merge: true });
       } else {
-        // Fetch role from staff_users collection
         const profileSnap = await getDoc(doc(db, "staff_users", user.uid));
         if (profileSnap.exists()) {
           const p = profileSnap.data();
@@ -539,7 +548,6 @@
       }
     }
 
-    // Login Form Submit
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const errBox = document.getElementById('loginError');
@@ -565,7 +573,6 @@
       await signOut(auth);
     };
 
-    // Real-time Firestore Listeners
     let unsubscribeUnits = null;
     let unsubscribeStaff = null;
 
@@ -714,7 +721,6 @@
       }).join('');
     };
 
-    // UNIT MODAL LOGIC
     window.openUnitModal = (unitId) => {
       activeUnitId = unitId;
       const unitMeta = ALL_UNITS.find(u => u.id === unitId);
@@ -724,7 +730,6 @@
       document.getElementById('modalUnitNumber').textContent = `Unit ${unitId}`;
       document.getElementById('modalUnitTag').textContent = unitMeta.type === 'Penthouse' ? 'Floor 40 • Penthouse' : `Floor ${unitMeta.floor}`;
 
-      // Populate fields
       document.getElementById('fieldStatus').value = d.status || 'Vacant';
       document.getElementById('fieldName').value = d.name || '';
       document.getElementById('fieldPhone').value = d.phone || '';
@@ -733,7 +738,6 @@
       document.getElementById('fieldNotes').value = d.notes || '';
       modalDocs = Array.isArray(d.docs) ? JSON.parse(JSON.stringify(d.docs)) : [];
 
-      // Quick actions
       const cleanPhone = (d.phone || '').replace(/[^+\d]/g, '');
       const qa = document.getElementById('modalQuickActions');
       if (cleanPhone || d.email) {
@@ -748,7 +752,6 @@
         qa.classList.add('hidden');
       }
 
-      // Apply Permissions (Lock inputs if Viewer)
       ['fieldStatus', 'fieldName', 'fieldPhone', 'fieldAltPhone', 'fieldEmail', 'fieldNotes'].forEach(id => {
         document.getElementById(id).disabled = !canEdit;
       });
@@ -818,7 +821,6 @@
       renderModalDocs();
     };
 
-    // Compress image so it fits easily inside Firestore document (< 300KB)
     window.handleImageUpload = (event) => {
       const file = event.target.files[0];
       if (!file) return;
@@ -906,7 +908,6 @@
       closeUnitModal();
     };
 
-    // ADMIN STAFF MANAGEMENT
     window.openAdminModal = () => {
       document.getElementById('adminModal').classList.remove('hidden');
       renderStaffList();
@@ -931,11 +932,9 @@
         const role = document.getElementById('staffRole').value;
         const email = resolveLoginIdentifier(rawUser);
 
-        // Create user in Firebase Auth via secondary instance
         const cred = await createUserWithEmailAndPassword(secondaryAuth, email, pass);
         await signOut(secondaryAuth);
 
-        // Save role & metadata in Firestore
         await setDoc(doc(db, "staff_users", cred.user.uid), {
           name,
           username: rawUser,
