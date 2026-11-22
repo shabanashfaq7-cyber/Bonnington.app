@@ -51,9 +51,8 @@
     <p class="text-xs text-slate-200 mt-1">Connecting to Live Directory...</p>
   </div>
 
-  <!-- LOGIN SCREEN WITH BUILDING NIGHT SKYLINE -->
+  <!-- LOGIN SCREEN -->
   <div id="loginScreen" class="hidden fixed inset-0 z-40 building-bg flex flex-col items-center justify-center p-4">
-    <!-- Top Location & Live Dubai Time Pill -->
     <div class="mb-4 px-4 py-1.5 rounded-full bg-slate-950/70 backdrop-blur-md border border-white/15 text-white text-[11px] font-semibold flex items-center gap-2 shadow-lg">
       <i class="fa-solid fa-location-dot text-amber-400"></i>
       <span>Cluster J, JLT Dubai</span>
@@ -109,7 +108,6 @@
 
   <!-- MAIN APP CONTAINER -->
   <div id="mainApp" class="hidden">
-    <!-- TOP HEADER -->
     <header class="navy-gradient text-white sticky top-0 z-30 shadow-md">
       <div class="max-w-6xl mx-auto px-4 py-3.5">
         <div class="flex items-center justify-between gap-2">
@@ -127,6 +125,10 @@
           </div>
 
           <div class="flex items-center gap-2">
+            <button id="exportCsvBtn" onclick="exportDirectoryCSV()" title="Download Excel CSV" class="hidden px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow transition">
+              <i class="fa-solid fa-file-excel"></i>
+              <span class="hidden md:inline">Export Excel</span>
+            </button>
             <button id="activityLogBtn" onclick="openActivityModal()" class="hidden px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1.5 transition">
               <i class="fa-solid fa-clock-rotate-left text-amber-400"></i>
               <span class="hidden sm:inline">Activity Log</span>
@@ -188,12 +190,10 @@
       </div>
     </header>
 
-    <!-- READ-ONLY BANNER FOR VIEWERS -->
     <div id="readOnlyBanner" class="hidden bg-amber-50 border-b border-amber-200 px-4 py-2 text-center text-xs text-amber-800 font-medium">
       <i class="fa-solid fa-eye mr-1"></i> View-Only Access: You can search units, view documents, and make calls. Contact Admin for edit rights.
     </div>
 
-    <!-- MAIN GRID -->
     <main class="max-w-6xl mx-auto px-4 mt-4">
       <div class="flex items-center justify-between mb-3">
         <p class="text-xs font-semibold text-slate-500" id="resultsCount">Showing 272 units</p>
@@ -380,9 +380,9 @@
       <div class="navy-gradient text-white px-5 py-4 flex items-center justify-between shrink-0">
         <div>
           <h3 class="text-lg font-extrabold flex items-center gap-2">
-            <i class="fa-solid fa-users-gear text-amber-400"></i> Staff & Ownership Control
+            <i class="fa-solid fa-users-gear text-amber-400"></i> Staff, Backup & Ownership
           </h3>
-          <p class="text-xs text-slate-300">Manage staff logins, roles & Master Admin transfer</p>
+          <p class="text-xs text-slate-300">Manage staff logins, Excel export & Master ownership</p>
         </div>
         <button onclick="closeAdminModal()" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
           <i class="fa-solid fa-xmark"></i>
@@ -390,6 +390,20 @@
       </div>
 
       <div class="p-5 overflow-y-auto space-y-5 flex-1">
+        <!-- Excel CSV Export Card -->
+        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center justify-between gap-3">
+          <div>
+            <h4 class="text-xs font-extrabold uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
+              <i class="fa-solid fa-file-csv text-emerald-600 text-base"></i> Full Directory Excel Backup
+            </h4>
+            <p class="text-[11px] text-emerald-700 mt-0.5">Download all 272 units, resident phones, status & notes in Excel (.CSV).</p>
+          </div>
+          <button type="button" onclick="exportDirectoryCSV()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow shrink-0 flex items-center gap-1.5">
+            <i class="fa-solid fa-download"></i> Download CSV
+          </button>
+        </div>
+
+        <!-- Create Staff Form -->
         <form id="createStaffForm" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
           <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Add New Staff / Manager Account</h4>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -425,10 +439,60 @@
           </button>
         </form>
 
+        <!-- Registered Staff List -->
         <div>
-          <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2">Registered Accounts & Master Ownership</h4>
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2">Registered Accounts (Edit / Block / Delete)</h4>
           <div id="staffListContainer" class="space-y-2"></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT STAFF USER MODAL -->
+  <div id="editStaffModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h4 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-user-pen text-amber-600"></i> Edit Staff Account
+        </h4>
+        <button onclick="closeEditStaffModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <input type="hidden" id="editStaffUid" />
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Full Name</label>
+          <input type="text" id="editStaffNameInput" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Login Username / Email (Read-Only)</label>
+          <input type="text" id="editStaffLoginDisplay" disabled class="w-full px-3 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Access Role</label>
+          <select id="editStaffRoleInput" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-semibold">
+            <option value="viewer">Viewer (Read-Only & Call)</option>
+            <option value="editor">Editor (Can Add/Edit Units)</option>
+            <option value="admin">Admin (Full Control)</option>
+          </select>
+        </div>
+
+        <div class="p-3 rounded-2xl bg-amber-50 border border-amber-200 space-y-2">
+          <div class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+            <i class="fa-solid fa-key text-amber-600"></i> Need to Change Password?
+          </div>
+          <p id="editStaffPassHint" class="text-[11px] text-amber-800 leading-relaxed"></p>
+          <button type="button" id="sendStaffResetEmailBtn" onclick="triggerStaffPasswordReset()" class="hidden w-full py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold">
+            Send Password Reset Link to Email
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+        <button type="button" onclick="closeEditStaffModal()" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-700 text-xs font-bold">Cancel</button>
+        <button type="button" onclick="saveEditedStaff()" class="px-5 py-2 rounded-xl gold-gradient text-white text-xs font-bold shadow">Save Updates</button>
       </div>
     </div>
   </div>
@@ -568,6 +632,63 @@
       }
     }
 
+    // ONE-CLICK EXCEL / CSV EXPORT FUNCTION
+    window.exportDirectoryCSV = async () => {
+      const headers = [
+        "Unit Number",
+        "Floor",
+        "Unit Type",
+        "Occupancy Status",
+        "Resident / Owner Name",
+        "Primary Phone",
+        "Secondary Phone",
+        "Email Address",
+        "Attached Docs Count",
+        "Security / Concierge Notes",
+        "Last Updated By",
+        "Last Updated Date"
+      ];
+
+      const escapeCSV = (val) => {
+        const str = String(val ?? "").replace(/"/g, '""');
+        return `"${str}"`;
+      };
+
+      const rows = ALL_UNITS.map(u => {
+        const d = unitsData[u.id] || {};
+        return [
+          u.id,
+          u.floor,
+          u.type,
+          d.status || "Vacant",
+          d.name || "",
+          d.phone || "",
+          d.altPhone || "",
+          d.email || "",
+          Array.isArray(d.docs) ? d.docs.length : 0,
+          d.notes || "",
+          d.updatedBy || "",
+          d.updatedAt ? new Date(d.updatedAt).toLocaleString() : ""
+        ].map(escapeCSV).join(",");
+      });
+
+      const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const dateTag = new Date().toISOString().slice(0, 10);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `voco_Bonnington_Directory_${dateTag}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      await logActivity("CSV_EXPORTED", "SYSTEM", `Downloaded full 272-unit Excel CSV directory report`);
+      showToast("Excel CSV Directory Downloaded!");
+    };
+
     window.handleForgotPassword = async () => {
       const errBox = document.getElementById('loginError');
       const okBox = document.getElementById('loginSuccess');
@@ -642,14 +763,15 @@
             const p = profileSnap.data();
             if (p.disabled) {
               await signOut(auth);
-              alert("Your account has been disabled by the Admin.");
+              alert("Your account has been disabled or removed by the Admin.");
               return;
             }
             currentUserRole = p.role || "viewer";
             currentUserName = p.name || emailLower.split('@')[0];
           } else {
-            currentUserRole = "viewer";
-            currentUserName = emailLower.split('@')[0];
+            await signOut(auth);
+            alert("This account has been removed by the Admin.");
+            return;
           }
         }
       } catch (e) {
@@ -671,6 +793,7 @@
       const badge = document.getElementById('userRoleBadge');
       const adminBtn = document.getElementById('adminPanelBtn');
       const logBtn = document.getElementById('activityLogBtn');
+      const csvBtn = document.getElementById('exportCsvBtn');
       const readOnlyBanner = document.getElementById('readOnlyBanner');
 
       document.getElementById('loggedUserLabel').textContent = `${currentUserName} (${currentUser.email})`;
@@ -680,24 +803,28 @@
         badge.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-500 text-slate-950";
         adminBtn.classList.remove('hidden');
         logBtn.classList.remove('hidden');
+        csvBtn.classList.remove('hidden');
         readOnlyBanner.classList.add('hidden');
       } else if (currentUserRole === 'admin') {
         badge.textContent = "ADMIN";
         badge.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40";
         adminBtn.classList.remove('hidden');
         logBtn.classList.remove('hidden');
+        csvBtn.classList.remove('hidden');
         readOnlyBanner.classList.add('hidden');
       } else if (currentUserRole === 'editor') {
         badge.textContent = "EDITOR";
         badge.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30";
         adminBtn.classList.add('hidden');
         logBtn.classList.add('hidden');
+        csvBtn.classList.add('hidden');
         readOnlyBanner.classList.add('hidden');
       } else {
         badge.textContent = "VIEWER";
         badge.className = "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-slate-600 text-slate-200";
         adminBtn.classList.add('hidden');
         logBtn.classList.add('hidden');
+        csvBtn.classList.add('hidden');
         readOnlyBanner.classList.remove('hidden');
       }
     }
@@ -1137,9 +1264,10 @@
 
       container.innerHTML = activityLogs.map(log => {
         let icon = "fa-pen-to-square text-blue-600 bg-blue-50";
-        if (log.actionType === "UNIT_CLEARED" || log.actionType === "USER_BLOCKED") icon = "fa-trash-can text-red-600 bg-red-50";
+        if (log.actionType === "UNIT_CLEARED" || log.actionType === "USER_BLOCKED" || log.actionType === "USER_DELETED") icon = "fa-trash-can text-red-600 bg-red-50";
         else if (log.actionType === "OWNERSHIP_TRANSFERRED") icon = "fa-crown text-amber-600 bg-amber-50";
-        else if (log.actionType === "USER_CREATED" || log.actionType === "ROLE_CHANGED") icon = "fa-user-shield text-emerald-600 bg-emerald-50";
+        else if (log.actionType === "CSV_EXPORTED") icon = "fa-file-excel text-emerald-700 bg-emerald-50";
+        else if (log.actionType === "USER_CREATED" || log.actionType === "ROLE_CHANGED" || log.actionType === "USER_EDITED") icon = "fa-user-shield text-emerald-600 bg-emerald-50";
 
         return `
           <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-3">
@@ -1227,6 +1355,7 @@
             <div class="min-w-0">
               <div class="flex items-center gap-1.5">
                 <span class="text-xs font-bold text-slate-900 truncate">${u.name}</span>
+                <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">${u.role}</span>
                 ${u.disabled ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700">BLOCKED</span>` : ''}
               </div>
               <div class="text-[11px] text-slate-500 truncate">Login: <b>${u.username}</b></div>
@@ -1235,17 +1364,18 @@
               <span class="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg gold-gradient text-white shrink-0 self-start sm:self-center">Master Owner</span>
             ` : `
               <div class="flex flex-wrap items-center gap-1.5 shrink-0">
-                <select onchange="updateStaffRole('${u.uid}', '${u.name}', this.value)" class="px-2 py-1 rounded-lg bg-white border border-slate-300 text-xs font-semibold">
-                  <option value="viewer" ${u.role === 'viewer' ? 'selected' : ''}>Viewer</option>
-                  <option value="editor" ${u.role === 'editor' ? 'selected' : ''}>Editor</option>
-                  <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
-                </select>
-                <button onclick="toggleStaffBlock('${u.uid}', '${u.name}', ${!u.disabled})" class="px-2.5 py-1 rounded-lg ${u.disabled ? 'bg-emerald-600 text-white' : 'bg-red-100 text-red-700'} text-xs font-bold">
+                <button onclick="openEditStaffModal('${u.uid}')" title="Edit User & Password Options" class="px-2.5 py-1 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-800 text-xs font-bold flex items-center gap-1">
+                  <i class="fa-solid fa-pen"></i> Edit
+                </button>
+                <button onclick="toggleStaffBlock('${u.uid}', '${u.name}', ${!u.disabled})" class="px-2.5 py-1 rounded-lg ${u.disabled ? 'bg-emerald-600 text-white' : 'bg-amber-100 text-amber-800'} text-xs font-bold">
                   ${u.disabled ? 'Unblock' : 'Block'}
                 </button>
+                <button onclick="deleteStaffUser('${u.uid}', '${u.name}', '${u.username}')" title="Delete Account" class="px-2.5 py-1 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold flex items-center gap-1">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
                 ${isCurrentUserMaster && !u.disabled ? `
-                  <button onclick="transferMasterOwnership('${u.uid}', '${u.name}', '${u.email}')" title="Make Master Owner" class="px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold flex items-center gap-1">
-                    <i class="fa-solid fa-crown"></i> Make Owner
+                  <button onclick="transferMasterOwnership('${u.uid}', '${u.name}', '${u.email}')" title="Make Master Owner" class="px-2 py-1 rounded-lg bg-slate-800 text-amber-300 text-xs font-bold flex items-center gap-1">
+                    <i class="fa-solid fa-crown"></i>
                   </button>
                 ` : ''}
               </div>
@@ -1255,16 +1385,80 @@
       }).join('');
     }
 
-    window.updateStaffRole = async (uid, name, newRole) => {
-      await setDoc(doc(db, "staff_users", uid), { role: newRole }, { merge: true });
-      await logActivity("ROLE_CHANGED", "SYSTEM", `Changed ${name}'s access role to ${newRole.toUpperCase()}`);
-      showToast(`Permission updated to ${newRole.toUpperCase()}`);
+    window.openEditStaffModal = (uid) => {
+      const u = staffUsers[uid];
+      if (!u) return;
+
+      document.getElementById('editStaffUid').value = uid;
+      document.getElementById('editStaffNameInput').value = u.name || '';
+      document.getElementById('editStaffLoginDisplay').value = u.username || u.email || '';
+      document.getElementById('editStaffRoleInput').value = u.role || 'viewer';
+
+      const isRealEmail = u.email && !u.email.endsWith('@bonnington.app');
+      const hintEl = document.getElementById('editStaffPassHint');
+      const resetBtn = document.getElementById('sendStaffResetEmailBtn');
+
+      if (isRealEmail) {
+        hintEl.textContent = `This user registered with a real email (${u.email}). Click below to send them an instant password reset link.`;
+        resetBtn.classList.remove('hidden');
+      } else {
+        hintEl.textContent = `Because "${u.username}" is a staff username (not an email), Firebase does not allow direct password editing from the browser. To set a new password: click Delete (🗑️) on this user, then create a new account with a new username & password.`;
+        resetBtn.classList.add('hidden');
+      }
+
+      document.getElementById('editStaffModal').classList.remove('hidden');
+    };
+
+    window.closeEditStaffModal = () => {
+      document.getElementById('editStaffModal').classList.add('hidden');
+    };
+
+    window.triggerStaffPasswordReset = async () => {
+      const uid = document.getElementById('editStaffUid').value;
+      const u = staffUsers[uid];
+      if (!u || !u.email) return;
+
+      try {
+        await sendPasswordResetEmail(auth, u.email);
+        await logActivity("ROLE_CHANGED", "SYSTEM", `Sent password reset email to ${u.name} (${u.email})`);
+        showToast(`Password reset link sent to ${u.email}!`);
+        closeEditStaffModal();
+      } catch (err) {
+        alert("Error sending reset link: " + err.message);
+      }
+    };
+
+    window.saveEditedStaff = async () => {
+      const uid = document.getElementById('editStaffUid').value;
+      const newName = document.getElementById('editStaffNameInput').value.trim();
+      const newRole = document.getElementById('editStaffRoleInput').value;
+      if (!uid || !newName) return;
+
+      await setDoc(doc(db, "staff_users", uid), {
+        name: newName,
+        role: newRole
+      }, { merge: true });
+
+      await logActivity("USER_EDITED", "SYSTEM", `Updated profile for ${newName} — Role: ${newRole.toUpperCase()}`);
+      showToast("Staff account updated!");
+      closeEditStaffModal();
     };
 
     window.toggleStaffBlock = async (uid, name, shouldDisable) => {
       await setDoc(doc(db, "staff_users", uid), { disabled: shouldDisable }, { merge: true });
       await logActivity(shouldDisable ? "USER_BLOCKED" : "ROLE_CHANGED", "SYSTEM", `${shouldDisable ? 'Blocked' : 'Unblocked'} account for ${name}`);
       showToast(shouldDisable ? "User access blocked" : "User access restored");
+    };
+
+    window.deleteStaffUser = async (uid, name, username) => {
+      const ok = confirm(
+        `Delete staff account for ${name} (${username})?\n\nThey will be immediately logged out and removed from the portal.`
+      );
+      if (!ok) return;
+
+      await deleteDoc(doc(db, "staff_users", uid));
+      await logActivity("USER_DELETED", "SYSTEM", `Deleted staff account for ${name} (${username})`);
+      showToast(`Account for ${name} deleted.`);
     };
 
     window.transferMasterOwnership = async (targetUid, targetName, targetEmail) => {
